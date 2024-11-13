@@ -2,6 +2,7 @@ const rl = @import("raylib");
 const std = @import("std");
 
 const BRICK_SIZE = rl.Vector3.init(100, 40, 2);
+const USER_SIZE = rl.Vector3.init(100, 20, 2);
 
 pub const Brick = struct {
     pos: rl.Vector3,
@@ -10,10 +11,15 @@ pub const Brick = struct {
 
 pub const Game = struct {
     bricks: *[10]Brick,
+    user: rl.Vector3,
 };
 
 fn drawBrick(brick: Brick) void {
     rl.drawCube(brick.pos, BRICK_SIZE.x, BRICK_SIZE.y, BRICK_SIZE.z, brick.color);
+}
+
+fn drawUser(user: rl.Vector3) void {
+    rl.drawCube(user, USER_SIZE.x, USER_SIZE.y, USER_SIZE.z, rl.Color.black);
 }
 
 fn drawGame(game: Game) void {
@@ -66,8 +72,9 @@ pub fn main() anyerror!void {
         x += 120;
         counter += 1;
     }
-    const game = Game{
+    var game = Game{
         .bricks = &bricks,
+        .user = rl.Vector3.init(screenWidth / 2, screenHeight - 30, 1),
     };
 
     rl.initWindow(screenWidth, screenHeight, "Hello");
@@ -83,6 +90,12 @@ pub fn main() anyerror!void {
         // TODO: Update your variables here
         //----------------------------------------------------------------------------------
 
+        if (rl.isKeyDown(rl.KeyboardKey.key_h)) {
+            game.user.x -= 5;
+        } else if (rl.isKeyDown(rl.KeyboardKey.key_l)) {
+            game.user.x += 5;
+        }
+
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -90,6 +103,7 @@ pub fn main() anyerror!void {
         defer rl.endDrawing();
 
         drawGame(game);
+        drawUser(game.user);
 
         rl.clearBackground(rl.Color.white);
 
