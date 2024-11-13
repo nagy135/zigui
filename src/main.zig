@@ -94,6 +94,8 @@ pub fn main() anyerror!void {
             game.user.x -= 5;
         } else if (rl.isKeyDown(rl.KeyboardKey.key_l)) {
             game.user.x += 5;
+        } else if (rl.isKeyDown(rl.KeyboardKey.key_q)) {
+            rl.closeWindow();
         }
 
         //----------------------------------------------------------------------------------
