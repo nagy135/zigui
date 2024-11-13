@@ -10,6 +10,7 @@ const SCREEN_HEIGHT = 600;
 pub const Brick = struct {
     pos: rl.Vector3,
     color: rl.Color,
+    dead: bool,
 };
 
 pub const Ball = struct {
@@ -38,7 +39,9 @@ fn drawUser(user: rl.Vector3) void {
 
 fn drawGame(game: Game) void {
     for (game.bricks) |brick| {
-        drawBrick(brick);
+        if (!brick.dead) {
+            drawBrick(brick);
+        }
     }
 }
 
@@ -56,7 +59,11 @@ fn gameLogic(game: *Game) void {
         game.ball.dy *= -1;
     }
 
+    var i: usize = 0;
     for (game.bricks) |brick| {
+        if (brick.dead) {
+            continue;
+        }
         if (rl.checkCollisionBoxes(rl.BoundingBox{
             .min = rl.Vector3.init(brick.pos.x, brick.pos.y, brick.pos.z),
             .max = rl.Vector3.init(brick.pos.x + BRICK_SIZE.x, brick.pos.y + BRICK_SIZE.y, brick.pos.z + 1),
@@ -65,7 +72,9 @@ fn gameLogic(game: *Game) void {
             .max = rl.Vector3.init(game.ball.pos.x + BALL_SIZE.x, game.ball.pos.y + BALL_SIZE.y, game.ball.pos.z + 1),
         })) {
             game.ball.dy *= -1;
+            game.bricks[i].dead = true;
         }
+        i += 1;
     }
 
     if (rl.checkCollisionBoxes(rl.BoundingBox{
@@ -123,6 +132,7 @@ pub fn main() anyerror!void {
 
         const num = rand_impl.random().int(u32);
         brick.color = colors[num % colors.len];
+        brick.dead = false;
         x += 120;
         counter += 1;
     }
