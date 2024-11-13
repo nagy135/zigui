@@ -15,7 +15,7 @@ pub const Brick = struct {
 pub const Ball = struct {
     pos: rl.Vector3,
     dx: f32,
-    yx: f32,
+    dy: f32,
 };
 
 pub const Game = struct {
@@ -47,16 +47,39 @@ fn gameLogic(game: *Game) void {
         game.ball.dx *= -1;
     }
     if (game.ball.pos.y <= 0) {
-        game.ball.yx *= -1;
+        game.ball.dy *= -1;
     }
     if (game.ball.pos.x >= SCREEN_WIDTH) {
         game.ball.dx *= -1;
     }
     if (game.ball.pos.y >= SCREEN_HEIGHT) {
-        game.ball.yx *= -1;
+        game.ball.dy *= -1;
     }
+
+    for (game.bricks) |brick| {
+        if (rl.checkCollisionBoxes(rl.BoundingBox{
+            .min = rl.Vector3.init(brick.pos.x, brick.pos.y, brick.pos.z),
+            .max = rl.Vector3.init(brick.pos.x + BRICK_SIZE.x, brick.pos.y + BRICK_SIZE.y, brick.pos.z + 1),
+        }, rl.BoundingBox{
+            .min = rl.Vector3.init(game.ball.pos.x, game.ball.pos.y, game.ball.pos.z),
+            .max = rl.Vector3.init(game.ball.pos.x + BALL_SIZE.x, game.ball.pos.y + BALL_SIZE.y, game.ball.pos.z + 1),
+        })) {
+            game.ball.dy *= -1;
+        }
+    }
+
+    if (rl.checkCollisionBoxes(rl.BoundingBox{
+        .min = rl.Vector3.init(game.user.x, game.user.y, game.user.z),
+        .max = rl.Vector3.init(game.user.x + USER_SIZE.x, game.user.y + USER_SIZE.y, game.user.z + 1),
+    }, rl.BoundingBox{
+        .min = rl.Vector3.init(game.ball.pos.x, game.ball.pos.y, game.ball.pos.z),
+        .max = rl.Vector3.init(game.ball.pos.x + BALL_SIZE.x, game.ball.pos.y + BALL_SIZE.y, game.ball.pos.z + 1),
+    })) {
+        game.ball.dy *= -1;
+    }
+
     game.ball.pos.x += game.ball.dx;
-    game.ball.pos.y += game.ball.yx;
+    game.ball.pos.y += game.ball.dy;
 }
 
 pub fn main() anyerror!void {
@@ -109,7 +132,7 @@ pub fn main() anyerror!void {
         .ball = Ball{
             .pos = rl.Vector3.init(screenWidth / 2, screenHeight / 2, 1),
             .dx = 5,
-            .yx = 5,
+            .dy = 5,
         },
     };
 
@@ -127,9 +150,9 @@ pub fn main() anyerror!void {
         //----------------------------------------------------------------------------------
 
         if (rl.isKeyDown(rl.KeyboardKey.key_h)) {
-            game.user.x -= 5;
+            game.user.x -= 10;
         } else if (rl.isKeyDown(rl.KeyboardKey.key_l)) {
-            game.user.x += 5;
+            game.user.x += 10;
         } else if (rl.isKeyDown(rl.KeyboardKey.key_q)) {
             rl.closeWindow();
         }
