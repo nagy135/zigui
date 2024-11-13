@@ -2,20 +2,34 @@ const rl = @import("raylib");
 const std = @import("std");
 
 const BRICK_SIZE = rl.Vector3.init(100, 40, 2);
+const BALL_SIZE = rl.Vector3.init(20, 20, 2);
 const USER_SIZE = rl.Vector3.init(100, 20, 2);
+const SCREEN_WIDTH = 800;
+const SCREEN_HEIGHT = 600;
 
 pub const Brick = struct {
     pos: rl.Vector3,
     color: rl.Color,
 };
 
+pub const Ball = struct {
+    pos: rl.Vector3,
+    dx: f32,
+    yx: f32,
+};
+
 pub const Game = struct {
     bricks: *[10]Brick,
     user: rl.Vector3,
+    ball: Ball,
 };
 
 fn drawBrick(brick: Brick) void {
     rl.drawCube(brick.pos, BRICK_SIZE.x, BRICK_SIZE.y, BRICK_SIZE.z, brick.color);
+}
+
+fn drawBall(ball: rl.Vector3) void {
+    rl.drawCube(ball, BALL_SIZE.x, BALL_SIZE.y, BALL_SIZE.z, rl.Color.dark_green);
 }
 
 fn drawUser(user: rl.Vector3) void {
@@ -28,11 +42,28 @@ fn drawGame(game: Game) void {
     }
 }
 
+fn gameLogic(game: *Game) void {
+    if (game.ball.pos.x <= 0) {
+        game.ball.dx *= -1;
+    }
+    if (game.ball.pos.y <= 0) {
+        game.ball.yx *= -1;
+    }
+    if (game.ball.pos.x >= SCREEN_WIDTH) {
+        game.ball.dx *= -1;
+    }
+    if (game.ball.pos.y >= SCREEN_HEIGHT) {
+        game.ball.yx *= -1;
+    }
+    game.ball.pos.x += game.ball.dx;
+    game.ball.pos.y += game.ball.yx;
+}
+
 pub fn main() anyerror!void {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const screenWidth = 800;
-    const screenHeight = 450;
+    const screenWidth = SCREEN_WIDTH;
+    const screenHeight = SCREEN_HEIGHT;
 
     var rand_impl = std.rand.DefaultPrng.init(42);
 
@@ -75,6 +106,11 @@ pub fn main() anyerror!void {
     var game = Game{
         .bricks = &bricks,
         .user = rl.Vector3.init(screenWidth / 2, screenHeight - 30, 1),
+        .ball = Ball{
+            .pos = rl.Vector3.init(screenWidth / 2, screenHeight / 2, 1),
+            .dx = 5,
+            .yx = 5,
+        },
     };
 
     rl.initWindow(screenWidth, screenHeight, "Hello");
@@ -98,6 +134,8 @@ pub fn main() anyerror!void {
             rl.closeWindow();
         }
 
+        gameLogic(&game);
+
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -106,6 +144,7 @@ pub fn main() anyerror!void {
 
         drawGame(game);
         drawUser(game.user);
+        drawBall(game.ball.pos);
 
         rl.clearBackground(rl.Color.white);
 
